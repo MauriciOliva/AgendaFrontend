@@ -31,7 +31,7 @@ export const Login = ({ onSubmit, error, loading }) => { // ← Recibir props
                 {/* Header */}
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Sistema de Viáticos
+                        Agenda Web
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Ingresa tus credenciales para acceder
