@@ -3,6 +3,17 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+const getApiBaseUrl = () => {
+    if (import.meta.env.MODE === 'development') {
+        return import.meta.env.VITE_API_BASE_URL || 'http://localhost:2600';
+    }
+
+    // Para producción, usar la variable de entorno directamente
+    return import.meta.env.VITE_API_BASE_URL;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
