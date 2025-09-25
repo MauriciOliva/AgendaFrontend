@@ -3,13 +3,12 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+// ✅ Función única para obtener la URL base
 const getApiBaseUrl = () => {
     if (import.meta.env.MODE === 'development') {
         return import.meta.env.VITE_API_BASE_URL || 'http://localhost:2600';
     }
-
-    // Para producción, usar la variable de entorno directamente
-    return import.meta.env.VITE_API_BASE_URL;
+    return import.meta.env.VITE_API_BASE_URL || 'https://agenda-backend-silk.vercel.app';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -26,23 +25,9 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const getApiBaseUrl = () => {
-        if (import.meta.env.MODE === 'development') {
-            return import.meta.env.VITE_API_BASE_URL || 'http://localhost:2600';
-        }
-
-        let productionUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
-
-        if (productionUrl.startsWith('http://')) {
-            productionUrl = productionUrl.replace('http://', 'https://');
-        }
-        
-        return productionUrl;
-    };
-
-    const API_BASE_URL = getApiBaseUrl();
-
     useEffect(() => {
+        console.log('🌐 API Base URL:', API_BASE_URL); // Para debugging
+        
         axios.interceptors.request.use((config) => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -51,7 +36,6 @@ export const AuthProvider = ({ children }) => {
             return config;
         });
 
-        // Configurar interceptor para manejar errores de autenticación
         axios.interceptors.response.use(
             (response) => response,
             (error) => {
@@ -74,11 +58,8 @@ export const AuthProvider = ({ children }) => {
             const userData = localStorage.getItem('user');
 
             if (token && userData) {
-                // ✅ VERIFICACIÓN SIMPLE - sin endpoint /verify
-                // Solo verifica que existan token y userData
                 const user = JSON.parse(userData);
                 
-                // Verificación básica del token (estructura JWT)
                 if (token && typeof token === 'string' && token.split('.').length === 3) {
                     setUser(user);
                 } else {
@@ -86,10 +67,8 @@ export const AuthProvider = ({ children }) => {
                     logout();
                 }
             }
-            // Si no hay token/userData, el estado se mantiene en null
         } catch (error) {
             console.error('Error verificando autenticación:', error);
-            // Limpiar datos corruptos
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setUser(null);
@@ -100,6 +79,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
+            console.log('🔐 Intentando login en:', `${API_BASE_URL}/api/v1/auth/login`);
+            
             const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
                 username,
                 password
@@ -110,7 +91,6 @@ export const AuthProvider = ({ children }) => {
             if (data.success) {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
-                
                 setUser(data.user);
                 
                 return {
@@ -123,7 +103,7 @@ export const AuthProvider = ({ children }) => {
                 throw new Error(data.message || 'Error desconocido');
             }
         } catch (error) {
-            console.error('Error en login:', error);
+            console.error('❌ Error en login:', error);
             throw new Error(
                 error.response?.data?.message || 
                 error.message || 
@@ -136,20 +116,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
-        
+        window.location.href = '/login'; // Redirigir forzosamente
         return { success: true, message: 'Sesión cerrada correctamente' };
-    };
-
-    // Función para verificar el token con el backend (opcional)
-    const verifyToken = async () => {
-        try {
-            // Si quieres verificar el token, puedes hacer una petición a una ruta protegida
-            const response = await axios.get(`${API_BASE_URL}/api/v1/viaticos`); // o cualquier ruta protegida
-            return response.data.success;
-        } catch (error) {
-            console.error('Error verificando token:', error);
-            return false;
-        }
     };
 
     const value = {
@@ -157,7 +125,6 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         login,
         logout,
-        verifyToken,
         isAuthenticated: !!user
     };
 

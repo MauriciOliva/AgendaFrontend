@@ -1,4 +1,4 @@
-import { createBrowserRouter, Router, Routes, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { AgendaPage } from "../pages/AgendaPAge";
 import { AuthProvider, useAuth } from "../hooks/AuthHook";
 import { LoadingSpinner } from "../components/Atomos/LoadingSnipper";
@@ -33,9 +33,9 @@ const router = createBrowserRouter([
     },
     {
         path: "/",
-        element:(
+        element: (
             <ProtectedRoute>
-                <AgendaPage/>
+                <AgendaPage />
             </ProtectedRoute>
         )
     },
