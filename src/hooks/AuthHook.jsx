@@ -3,15 +3,14 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
-// ✅ Función única para obtener la URL base
 const getApiBaseUrl = () => {
-    if (import.meta.env.MODE === 'development') {
-        return import.meta.env.VITE_API_BASE_URL || 'http://localhost:2600';
-    }
-    return import.meta.env.VITE_API_BASE_URL || 'https://agenda-backend-silk.vercel.app';
+    const url = import.meta.env.VITE_API_BASE_URL || 'https://agenda-backend-silk.vercel.app';
+    console.log('🔗 URL Base configurada:', url);
+    return url;
 };
 
 const API_BASE_URL = getApiBaseUrl();
+console.log('🌐 API_BASE_URL final:', API_BASE_URL);
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
