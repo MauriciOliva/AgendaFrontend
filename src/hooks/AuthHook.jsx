@@ -78,13 +78,22 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
-            console.log('🔐 Intentando login en:', `${API_BASE_URL}/api/v1/auth/login`);
+            // ✅ URL hardcodeada para evitar typos
+            const loginUrl = `${API_BASE_URL}/api/v1/auth/login`;
+            console.log('🔐 Intentando login en:', loginUrl);
             
-            const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
+            const response = await axios.post(loginUrl, {
                 username,
                 password
+            }, {
+                timeout: 10000, // 10 segundos timeout
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
+            console.log('✅ Login exitoso, respuesta:', response.data);
+            
             const data = response.data;
 
             if (data.success) {
@@ -102,12 +111,26 @@ export const AuthProvider = ({ children }) => {
                 throw new Error(data.message || 'Error desconocido');
             }
         } catch (error) {
-            console.error('❌ Error en login:', error);
-            throw new Error(
-                error.response?.data?.message || 
-                error.message || 
-                'Error al iniciar sesión'
-            );
+            console.error('❌ Error completo en login:', error);
+            console.error('❌ URL intentada:', error.config?.url);
+            console.error('❌ Método:', error.config?.method);
+            console.error('❌ Código de estado:', error.response?.status);
+            console.error('❌ Datos de error:', error.response?.data);
+            
+            // Mensaje de error más específico
+            let errorMessage = 'Error al iniciar sesión';
+            
+            if (error.code === 'NETWORK_ERROR') {
+                errorMessage = 'Error de conexión. Verifica tu internet.';
+            } else if (error.response?.status === 404) {
+                errorMessage = 'Endpoint no encontrado. Verifica la URL.';
+            } else if (error.response?.status === 500) {
+                errorMessage = 'Error interno del servidor.';
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            
+            throw new Error(errorMessage);
         }
     };
 
